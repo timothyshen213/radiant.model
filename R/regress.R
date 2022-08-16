@@ -89,14 +89,22 @@ regress <- function(dataset, rvar, evar, int = "", check = "",
     ## use k = 2 for AIC, use k = log(nrow(dataset)) for BIC
     model <- lm(form_upper, data = dataset) %>%
       step(k = 2, scope = list(lower = form_lower), direction = "backward")
+    # Brown-Forsythe Test (Test for Constant Variance)
+    bf <- bf.test(form_upper, dataset)
   } else if ("stepwise-forward" %in% check) {
     model <- lm(form_lower, data = dataset) %>%
       step(k = 2, scope = list(upper = form_upper), direction = "forward")
+    # Brown-Forsythe Test (Test for Constant Variance)
+    bf <- bf.test(form_lower, dataset)
   } else if ("stepwise-both" %in% check) {
     model <- lm(form_lower, data = dataset) %>%
       step(k = 2, scope = list(lower = form_lower, upper = form_upper), direction = "both")
+    # Brown-Forsythe Test (Test for Constant Variance)
+    bf <- bf.test(form_lower, dataset)
   } else {
     model <- lm(form_upper, data = dataset)
+    # Brown-Forsythe Test (Test for Constant Variance)
+    bf <- bf.test(form_upper, dataset)
   }
 
   ## needed for prediction if standardization or centering is used
@@ -128,7 +136,12 @@ regress <- function(dataset, rvar, evar, int = "", check = "",
     }
     rm(i)
   }
+
+  ## DIAGNOSTIC TESTING
+  # Shapiro-Wilk's Test (Test for Normality)
   shap_wilks <-shapiro.test(model$residuals)
+  # Brown-Forsythe Test (Test for Constant Variance)
+  bf <- bf.test(rvar~evar, dataset)
 
   ## remove elements no longer needed
   rm(dataset, hasLevs, form_lower, form_upper, isNum, envir)
@@ -324,11 +337,19 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
       cat("\n")
     }
   }
+  ## Print Diagnostics
   if ("diagnostic" %in% sum_check) {
     cat("Shapiro-Wilks Test")
     cat("Null hyp.: The dataset is normally distributed")
     cat("Alt. hyp.: The dataset is not normally distributed")
-    object$shap_wilks
+    object$shap_wilk
+    cat("\n")
+    cat("Browns-Forsythe Test")
+    cat("Null hyp.: The residuals are homoscedastic")
+    cat("Alt. hyp.: The residuals are heteroscedastic")
+    object$bf
+    cat("\n")
+
   }
 
   if (!radiant.data::is_empty(test_var)) {

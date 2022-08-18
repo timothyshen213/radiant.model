@@ -244,7 +244,10 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   reg_fit <- glance(object$model) %>% round(dec)
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
   cat("R-squared:", paste0(reg_fit$r.squared, ", "), "Adjusted R-squared:", reg_fit$adj.r.squared, "\n")
-  object$shap_wilks
+  cat("Shapiro-Wilks Test")
+  cat("Null hyp.: The dataset is normally distributed")
+  cat("Alt. hyp.: The dataset is not normally distributed")
+  object$shap_wilk
   ## if stepwise returns only an intercept
   if (nrow(coeff) == 1) {
     return("\nModel contains only an intercept. No additional output shown")

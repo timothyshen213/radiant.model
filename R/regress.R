@@ -136,6 +136,8 @@ regress <- function(dataset, rvar, evar, int = "", check = "",
   bp<-bptest(model)
   # Ljung–Box Test (Test for Independence)
   lj_box<-Box.test(model$residuals)
+  # Outliers
+  rs<-rstandard(model)[rstandard(model) < -3 | rstandard(model) > 3]
 
   ## remove elements no longer needed
   rm(dataset, hasLevs, form_lower, form_upper, isNum, envir)
@@ -268,6 +270,10 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   lb_display<-object$lj_box
   lb_display %<>% print()
   cat("\n\n")
+  cat("POSSIBLE OUTLIERS: Studentized Residuals \n")
+  cat("Absolute value of internally studentized residuals larger than 3 printed below\n")
+  rs_display<-object$rs
+  rs_display %<>% print()
 
   if (anyNA(object$model$coeff)) {
     cat("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\n")

@@ -306,7 +306,7 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
     cat("\n")
   }
 
-  if ("vif" %in% sum_check) {
+  if ("diag" %in% sum_check) {
     if (anyNA(object$model$coeff)) {
       cat("Multicollinearity diagnostics were not calculated.")
     } else {

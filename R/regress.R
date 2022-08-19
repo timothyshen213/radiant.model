@@ -90,21 +90,17 @@ regress <- function(dataset, rvar, evar, int = "", check = "",
     model <- lm(form_upper, data = dataset) %>%
       step(k = 2, scope = list(lower = form_lower), direction = "backward")
     # Brown-Forsythe Test (Test for Constant Variance)
-    bf <- bf.test(form_upper, dataset)
   } else if ("stepwise-forward" %in% check) {
     model <- lm(form_lower, data = dataset) %>%
       step(k = 2, scope = list(upper = form_upper), direction = "forward")
     # Brown-Forsythe Test (Test for Constant Variance)
-    bf <- bf.test(form_lower, dataset)
   } else if ("stepwise-both" %in% check) {
     model <- lm(form_lower, data = dataset) %>%
       step(k = 2, scope = list(lower = form_lower, upper = form_upper), direction = "both")
     # Brown-Forsythe Test (Test for Constant Variance)
-    bf <- bf.test(form_lower, dataset)
   } else {
     model <- lm(form_upper, data = dataset)
     # Brown-Forsythe Test (Test for Constant Variance)
-    bf <- bf.test(form_upper, dataset)
   }
 
   ## needed for prediction if standardization or centering is used
@@ -141,7 +137,6 @@ regress <- function(dataset, rvar, evar, int = "", check = "",
   # Shapiro-Wilk's Test (Test for Normality)
   shap_wilks <-shapiro.test(model$residuals)
   # Brown-Forsythe Test (Test for Constant Variance)
-  bf <- bf.test(rvar~evar, dataset)
 
   ## remove elements no longer needed
   rm(dataset, hasLevs, form_lower, form_upper, isNum, envir)

@@ -89,22 +89,14 @@ regress <- function(dataset, rvar, evar, int = "", check = "",
     ## use k = 2 for AIC, use k = log(nrow(dataset)) for BIC
     model <- lm(form_upper, data = dataset) %>%
       step(k = 2, scope = list(lower = form_lower), direction = "backward")
-    # **DIAGNOSTIC** Brown-Forsythe Test (Test for Constant Variance)
-    bf <- bf.test(form_upper, data = dataset, na.rm=TRUE)
   } else if ("stepwise-forward" %in% check) {
     model <- lm(form_lower, data = dataset) %>%
       step(k = 2, scope = list(upper = form_upper), direction = "forward")
-    # **DIAGNOSTIC** Brown-Forsythe Test (Test for Constant Variance)
-    bf <- bf.test(form_lower, data = dataset, na.rm=TRUE)
   } else if ("stepwise-both" %in% check) {
     model <- lm(form_lower, data = dataset) %>%
       step(k = 2, scope = list(lower = form_lower, upper = form_upper), direction = "both")
-    # **DIAGNOSTIC** Brown-Forsythe Test (Test for Constant Variance)
-    bf <- bf.test(form_lower, data = dataset, na.rm=TRUE)
   } else {
     model <- lm(form_upper, data = dataset)
-    # **DIAGNOSTIC** Brown-Forsythe Test (Test for Constant Variance)
-    bf <- bf.test(form_upper, data = dataset, na.rm=TRUE)
   }
 
   ## needed for prediction if standardization or centering is used
@@ -140,6 +132,8 @@ regress <- function(dataset, rvar, evar, int = "", check = "",
   # **DIAGNOSTIC TESTING**
   # Shapiro-Wilk's Test (Test for Normality)
   shap_wilks <-shapiro.test(model$residuals)
+  # Breusch-Pagan Test (Test for Homosekdasticity)
+  bp<-bptest(model)
   # Ljung–Box Test (Test for Independence)
   lj_box<-Box.test(model$residuals)
 
@@ -257,10 +251,10 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   cat("Alt. hyp.: The dataset is not normally distributed \n")
   object$shap_wilk
   cat("\n\n")
-  cat("TEST FOR HOMOSKEDASTICITY: Browns-Forsythe Test \n")
+  cat("TEST FOR HOMOSKEDASTICITY: Breusch-Pagan Test \n")
   cat("Null hyp.: The residuals are homoscedastic\n")
   cat("Alt. hyp.: The residuals are heteroscedastic\n")
-  object$bf
+  object$bp
   cat("\n\n")
   cat("TEST FOR INDEPENDENCE: Ljung–Box Test \n")
   cat("Null hyp.: The errors are uncorrelated\n")
@@ -268,7 +262,7 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   object$lj_box
   cat("\n\n")
   cat("DIAGNOSTIC PLOTS:\n")
-  residual_plot(object$model$residuals)
+  residual_plot(object$model)
 
   ## if stepwise returns only an intercept
   if (nrow(coeff) == 1) {

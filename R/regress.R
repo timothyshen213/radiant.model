@@ -244,21 +244,22 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   cat("TEST FOR NORMALITY: Shapiro-Wilks Test \n")
   cat("Null hyp.: The dataset is normally distributed \n")
   cat("Alt. hyp.: The dataset is not normally distributed \n")
-  object$shap_wilk
+  sw_display<-object$shap_wilk
+  sw_display %<>% print()
   cat("\n\n")
   cat("TEST FOR HOMOSKEDASTICITY: Breusch-Pagan Test \n")
   cat("Null hyp.: The residuals are homoscedastic\n")
   cat("Alt. hyp.: The residuals are heteroscedastic\n")
-  cat(object$bp)
+  bp_display <-object$bp
+  bp_display %<>% print()
   cat("\n\n")
   cat("TEST FOR INDEPENDENCE: Ljung–Box Test \n")
   cat("Null hyp.: The errors are uncorrelated\n")
   cat("Alt. hyp.: The errors are correlated\n")
-  object$lj_box
+  lb_display<-object$lj_box
+  lb_display %<>% print()
   cat("\n\n")
-  cat("DIAGNOSTIC PLOTS:\n")
-  par(mfrow=c(2,2))
-  plot(object$model)
+
 
   ## if stepwise returns only an intercept
   if (nrow(coeff) == 1) {

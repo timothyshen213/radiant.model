@@ -238,6 +238,15 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   reg_fit <- glance(object$model) %>% round(dec)
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
   cat("R-squared:", paste0(reg_fit$r.squared, ", "), "Adjusted R-squared:", reg_fit$adj.r.squared, "\n\n")
+
+  ## if stepwise returns only an intercept
+  if (nrow(coeff) == 1) {
+    return("\nModel contains only an intercept. No additional output shown")
+  }
+
+  if (reg_fit["p.value"] < .001) reg_fit["p.value"] <- "< .001"
+  cat("F-statistic:", reg_fit$statistic, paste0("df(", reg_fit$df, ",", reg_fit$df.residual, "), p.value"), reg_fit$p.value)
+  cat("\nNr obs:", format_nr(reg_fit$nobs, dec = 0), "\n\n")
   cat("----------------------------------------------------\n")
   cat("Diagnostic Testing \n")
   cat("----------------------------------------------------\n\n")
@@ -259,16 +268,6 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   lb_display<-object$lj_box
   lb_display %<>% print()
   cat("\n\n")
-
-
-  ## if stepwise returns only an intercept
-  if (nrow(coeff) == 1) {
-    return("\nModel contains only an intercept. No additional output shown")
-  }
-
-  if (reg_fit["p.value"] < .001) reg_fit["p.value"] <- "< .001"
-  cat("F-statistic:", reg_fit$statistic, paste0("df(", reg_fit$df, ",", reg_fit$df.residual, "), p.value"), reg_fit$p.value)
-  cat("\nNr obs:", format_nr(reg_fit$nobs, dec = 0), "\n\n")
 
   if (anyNA(object$model$coeff)) {
     cat("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\n")

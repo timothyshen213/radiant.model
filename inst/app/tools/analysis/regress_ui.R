@@ -14,7 +14,7 @@ reg_check <- c(
 )
 reg_sum_check <- c(
   "RMSE" = "rmse", "Sum of squares" = "sumsquares",
-  "VIF" = "vif", "Confidence intervals" = "confint"
+  "Diagnostic" = "diag", "Confidence intervals" = "confint"
 )
 reg_lines <- c("Line" = "line", "Loess" = "loess", "Jitter" = "jitter")
 reg_plots <- c(

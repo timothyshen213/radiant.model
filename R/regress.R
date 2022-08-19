@@ -244,7 +244,7 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   cat("TEST FOR NORMALITY: Shapiro-Wilks Test \n")
   cat("Null hyp.: The dataset is normally distributed \n")
   cat("Alt. hyp.: The dataset is not normally distributed \n")
-  shap_wilk
+  object$shap_wilk
   cat("\n\n")
   cat("TEST FOR HOMOSKEDASTICITY: Breusch-Pagan Test \n")
   cat("Null hyp.: The residuals are homoscedastic\n")

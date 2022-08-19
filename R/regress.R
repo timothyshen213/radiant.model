@@ -89,18 +89,22 @@ regress <- function(dataset, rvar, evar, int = "", check = "",
     ## use k = 2 for AIC, use k = log(nrow(dataset)) for BIC
     model <- lm(form_upper, data = dataset) %>%
       step(k = 2, scope = list(lower = form_lower), direction = "backward")
-    # Brown-Forsythe Test (Test for Constant Variance)
+    # **DIAGNOSTIC** Brown-Forsythe Test (Test for Constant Variance)
+    bf <- bf.test(form_upper, data = dataset, na.rm=TRUE)
   } else if ("stepwise-forward" %in% check) {
     model <- lm(form_lower, data = dataset) %>%
       step(k = 2, scope = list(upper = form_upper), direction = "forward")
-    # Brown-Forsythe Test (Test for Constant Variance)
+    # **DIAGNOSTIC** Brown-Forsythe Test (Test for Constant Variance)
+    bf <- bf.test(form_lower, data = dataset, na.rm=TRUE)
   } else if ("stepwise-both" %in% check) {
     model <- lm(form_lower, data = dataset) %>%
       step(k = 2, scope = list(lower = form_lower, upper = form_upper), direction = "both")
-    # Brown-Forsythe Test (Test for Constant Variance)
+    # **DIAGNOSTIC** Brown-Forsythe Test (Test for Constant Variance)
+    bf <- bf.test(form_lower, data = dataset, na.rm=TRUE)
   } else {
     model <- lm(form_upper, data = dataset)
-    # Brown-Forsythe Test (Test for Constant Variance)
+    # **DIAGNOSTIC** Brown-Forsythe Test (Test for Constant Variance)
+    bf <- bf.test(form_upper, data = dataset, na.rm=TRUE)
   }
 
   ## needed for prediction if standardization or centering is used
@@ -133,10 +137,16 @@ regress <- function(dataset, rvar, evar, int = "", check = "",
     rm(i)
   }
 
-  ## DIAGNOSTIC TESTING
+  # **DIAGNOSTIC TESTING**
   # Shapiro-Wilk's Test (Test for Normality)
   shap_wilks <-shapiro.test(model$residuals)
-  # Brown-Forsythe Test (Test for Constant Variance)
+  # Ljung–Box Test (Test for Independence)
+  lj_box<-Box.test(model$residuals)
+
+  residual_plot<-function(resplot){
+    par(mfrow=c(2,2))
+    rp<-plot(resplot)
+  }
 
   ## remove elements no longer needed
   rm(dataset, hasLevs, form_lower, form_upper, isNum, envir)
@@ -239,10 +249,27 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   reg_fit <- glance(object$model) %>% round(dec)
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
   cat("R-squared:", paste0(reg_fit$r.squared, ", "), "Adjusted R-squared:", reg_fit$adj.r.squared, "\n\n")
-  cat("Shapiro-Wilks Test \n")
+  cat("----------------------------------------------------\n")
+  cat(step_type, "Diagnostic Testing \n")
+  cat("----------------------------------------------------\n\n")
+  cat("TEST FOR NORMALITY: Shapiro-Wilks Test \n")
   cat("Null hyp.: The dataset is normally distributed \n")
   cat("Alt. hyp.: The dataset is not normally distributed \n")
   object$shap_wilk
+  cat("\n\n")
+  cat("TEST FOR HOMOSKEDASTICITY: Browns-Forsythe Test \n")
+  cat("Null hyp.: The residuals are homoscedastic\n")
+  cat("Alt. hyp.: The residuals are heteroscedastic\n")
+  object$bf
+  cat("\n\n")
+  cat("TEST FOR INDEPENDENCE: Ljung–Box Test \n")
+  cat("Null hyp.: The errors are uncorrelated\n")
+  cat("Alt. hyp.: The errors are correlated\n")
+  object$lj_box
+  cat("\n\n")
+  cat("DIAGNOSTIC PLOTS:\n")
+  residual_plot(object$model$residuals)
+
   ## if stepwise returns only an intercept
   if (nrow(coeff) == 1) {
     return("\nModel contains only an intercept. No additional output shown")

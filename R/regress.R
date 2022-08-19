@@ -137,11 +137,6 @@ regress <- function(dataset, rvar, evar, int = "", check = "",
   # Ljung–Box Test (Test for Independence)
   lj_box<-Box.test(model$residuals)
 
-  residual_plot<-function(resplot){
-    par(mfrow=c(2,2))
-    rp<-plot(resplot)
-  }
-
   ## remove elements no longer needed
   rm(dataset, hasLevs, form_lower, form_upper, isNum, envir)
 
@@ -262,7 +257,8 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   object$lj_box
   cat("\n\n")
   cat("DIAGNOSTIC PLOTS:\n")
-  residual_plot(object$model)
+  par(mfrow=c(2,2))
+  plot(object$model)
 
   ## if stepwise returns only an intercept
   if (nrow(coeff) == 1) {

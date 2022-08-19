@@ -249,31 +249,6 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   if (reg_fit["p.value"] < .001) reg_fit["p.value"] <- "< .001"
   cat("F-statistic:", reg_fit$statistic, paste0("df(", reg_fit$df, ",", reg_fit$df.residual, "), p.value"), reg_fit$p.value)
   cat("\nNr obs:", format_nr(reg_fit$nobs, dec = 0), "\n\n")
-  cat("----------------------------------------------------\n")
-  cat("Diagnostic Testing \n")
-  cat("----------------------------------------------------\n\n")
-  cat("TEST FOR NORMALITY: Shapiro-Wilks Test \n")
-  cat("Null hyp.: The dataset is normally distributed \n")
-  cat("Alt. hyp.: The dataset is not normally distributed \n")
-  sw_display<-object$shap_wilk
-  sw_display %<>% print()
-  cat("\n\n")
-  cat("TEST FOR HOMOSKEDASTICITY: Breusch-Pagan Test \n")
-  cat("Null hyp.: The residuals are homoscedastic\n")
-  cat("Alt. hyp.: The residuals are heteroscedastic\n")
-  bp_display <-object$bp
-  bp_display %<>% print()
-  cat("\n\n")
-  cat("TEST FOR INDEPENDENCE: Ljung–Box Test \n")
-  cat("Null hyp.: The errors are uncorrelated\n")
-  cat("Alt. hyp.: The errors are correlated\n")
-  lb_display<-object$lj_box
-  lb_display %<>% print()
-  cat("\n\n")
-  cat("POSSIBLE OUTLIERS: Studentized Residuals \n")
-  cat("Absolute value of internally studentized residuals larger than 3 printed below\n")
-  rs_display<-object$rs
-  rs_display %<>% print()
 
   if (anyNA(object$model$coeff)) {
     cat("The set of explanatory variables exhibit perfect multicollinearity.\nOne or more variables were dropped from the estimation.\n")
@@ -307,6 +282,31 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   }
 
   if ("diag" %in% sum_check) {
+    cat("----------------------------------------------------\n")
+    cat("Diagnostic Testing \n")
+    cat("----------------------------------------------------\n\n")
+    cat("TEST FOR NORMALITY: Shapiro-Wilks Test \n")
+    cat("Null hyp.: The dataset is normally distributed \n")
+    cat("Alt. hyp.: The dataset is not normally distributed \n")
+    sw_display<-object$shap_wilk
+    sw_display %<>% print()
+    cat("\n\n")
+    cat("TEST FOR HOMOSKEDASTICITY: Breusch-Pagan Test \n")
+    cat("Null hyp.: The residuals are homoscedastic\n")
+    cat("Alt. hyp.: The residuals are heteroscedastic\n")
+    bp_display <-object$bp
+    bp_display %<>% print()
+    cat("\n\n")
+    cat("TEST FOR INDEPENDENCE: Ljung–Box Test \n")
+    cat("Null hyp.: The errors are uncorrelated\n")
+    cat("Alt. hyp.: The errors are correlated\n")
+    lb_display<-object$lj_box
+    lb_display %<>% print()
+    cat("\n\n")
+    cat("POSSIBLE OUTLIERS: Studentized Residuals \n")
+    cat("Absolute value of internally studentized residuals larger than 3 printed below\n")
+    rs_display<-object$rs
+    rs_display %<>% print()
     if (anyNA(object$model$coeff)) {
       cat("Multicollinearity diagnostics were not calculated.")
     } else {

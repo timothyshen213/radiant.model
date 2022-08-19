@@ -244,7 +244,7 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
   cat("\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n")
   cat("R-squared:", paste0(reg_fit$r.squared, ", "), "Adjusted R-squared:", reg_fit$adj.r.squared, "\n\n")
   cat("----------------------------------------------------\n")
-  cat(step_type, "Diagnostic Testing \n")
+  cat("Diagnostic Testing \n")
   cat("----------------------------------------------------\n\n")
   cat("TEST FOR NORMALITY: Shapiro-Wilks Test \n")
   cat("Null hyp.: The dataset is normally distributed \n")

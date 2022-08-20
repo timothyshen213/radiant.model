@@ -26,7 +26,7 @@
 #' @export
 regress <- function(dataset, rvar, evar, int = "", check = "",
                     form, data_filter = "", envir = parent.frame()) {
-  library(lmtests)
+  library(lmtest)
   if (!missing(form)) {
     form <- as.formula(format(form))
     vars <- all.vars(form)

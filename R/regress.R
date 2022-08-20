@@ -307,6 +307,7 @@ summary.regress <- function(object, sum_check = "", conf_lev = .95,
     cat("Absolute value of internally studentized residuals larger than 3 printed below\n")
     rs_display<-object$rs
     rs_display %<>% print()
+    cat("\n\n")
     cat("MULTICOLLINEARITY: VIF \n")
     if (anyNA(object$model$coeff)) {
       cat("Multicollinearity diagnostics were not calculated.")

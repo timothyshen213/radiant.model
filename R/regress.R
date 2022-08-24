@@ -136,7 +136,7 @@ regress <- function(dataset, rvar, evar, int = "", check = "",
   # Breusch-Pagan Test (Test for Homosekdasticity)
   bp<-bptest(model)
   # Ljung–Box Test (Test for Independence)
-  lj_box<-Box.test(model$residuals)
+  lj_box<-Box.test(model$residuals, type="Ljung")
   # Outliers
   rs<-rstandard(model)[rstandard(model) < -3 | rstandard(model) > 3]
 

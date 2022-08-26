@@ -1,7 +1,7 @@
 > Anova
 
 
-### Data
+### One-Way ANOVA
 
 ```{r}
 head(warpbreaks)

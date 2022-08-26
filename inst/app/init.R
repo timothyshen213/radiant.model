@@ -32,6 +32,7 @@ r_url_list[["Neural Network"]] <-
     "Predict" = "model/nn/predict/",
     "Plot" = "model/nn/plot/"
   ))
+r_url_list[["Analysis of Variance (ANOVA)"]] <- "model/avar/"
 r_url_list[["Classification and regression trees"]] <-
   list("tabs_crtree" = list(
     "Summary" = "model/crtree/",
@@ -82,6 +83,7 @@ options(
         tabPanel("Multinomial logistic regression (MNL)", uiOutput("mnl")),
         tabPanel("Naive Bayes", uiOutput("nb")),
         tabPanel("Neural Network", uiOutput("nn")),
+        tabPanel("Analysis of Variance (ANOVA)", uiOutput("avar")),
         "----", "Trees",
         tabPanel("Classification and regression trees", uiOutput("crtree")),
         tabPanel("Random Forest", uiOutput("rf")),

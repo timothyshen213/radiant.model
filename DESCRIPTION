@@ -38,7 +38,8 @@ Imports:
     xgboost (>= 0.90.0.2),
     pdp (>= 0.7.0),
     yaml,
-    lmtest
+    lmtest,
+    multcomp
 Suggests:
     testthat (>= 2.0.0),
     pkgdown (>= 1.1.0)
@@ -50,4 +51,4 @@ License: AGPL-3 | file LICENSE
 LazyData: true
 Encoding: UTF-8
 Language: en-US
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1

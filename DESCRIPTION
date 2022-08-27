@@ -39,7 +39,8 @@ Imports:
     pdp (>= 0.7.0),
     yaml,
     lmtest,
-    multcomp
+    multcomp,
+    shinyWidgets
 Suggests:
     testthat (>= 2.0.0),
     pkgdown (>= 1.1.0)

@@ -3,6 +3,7 @@
 ################################################################
 avar_sum_check <-c("Tukeys Confidence Intervals"="tukey", "Post-Hoc"="posthoc")
 avar_testtype<-c("One Way"="one", "Two Way" = "two")
+avar_model<-c("Model I" = "one","Model II" = "two", "Model III"="three")
 avar_args <- as.list(formals(avar))
 
 ## list of function inputs selected by user
@@ -16,16 +17,44 @@ avar_inputs <- reactive({
   avar_args
 })
 
-output$ui_avar_vars <- renderUI({
+# output$ui_avar_vars <- renderUI({
+#   vars <- varnames()
+#   toSelect <- .get_class() %in% c("numeric", "integer", "date", "factor")
+#   vars <- vars[toSelect]
+#   selectInput(
+#     inputId = "avar_vars", label = "Treatments:", choices = vars,
+#     selected = state_multiple("avar_vars", vars),
+#     multiple = TRUE, size = min(15, length(vars)), selectize = FALSE
+#   )
+# })
+
+output$ui_avar_treatment <- renderUI({
   vars <- varnames()
   toSelect <- .get_class() %in% c("numeric", "integer", "date", "factor")
   vars <- vars[toSelect]
-  selectInput(
-    inputId = "avar_vars", label = "Treatments:", choices = vars,
-    selected = state_multiple("avar_vars", vars),
-    multiple = TRUE, size = min(15, length(vars)), selectize = FALSE
-  )
+  pickerInput(
+    inputId="avar_treat",label="Treatment I:", choices=vars,
+    multiple=FALSE,options=pickerOptions(liveSearch=TRUE, maxOptions = 1))
 })
+
+output$ui_avar_treatments <- renderUI({
+  vars <- varnames()
+  toSelect <- .get_class() %in% c("numeric", "integer", "date", "factor")
+  vars <- vars[toSelect]
+  pickerInput(
+    inputId="avar_treats",label="Treatment II:", choices=vars,
+    multiple=FALSE,options=pickerOptions(liveSearch=TRUE, maxOptions = 1, title="**ONLY FOR TWO WAY ANOVA MODEL**"))
+})
+
+output$ui_avar_response <- renderUI({
+  vars <- varnames()
+  toSelect <- .get_class() %in% c("numeric", "integer", "date", "factor")
+  vars <- vars[toSelect]
+  pickerInput(
+    inputId="avar_response",label="Response:", choices=vars,
+    multiple=FALSE)
+})
+
 
 ## add a spinning refresh icon if the tabel needs to be (re)calculated
 run_refresh(avar_args, "avar", init = "vars", label = "Run ANOVA", relabel = "Re-run ANOVA")
@@ -40,16 +69,31 @@ output$ui_avar <- renderUI({
     wellPanel(
         selectInput(
           "avar_way",
-          label = "Type of ANOVA:", choices = avar_testtype,
+          label = HTML("Type of ANOVA:"), choices = avar_testtype,
           selected = state_single("avar_way", avar_testtype, "two"), multiple = FALSE
         ),
+        uiOutput("ui_avar_treatment"),
+        uiOutput("ui_avar_treatments"),
+        uiOutput("ui_avar_response")),
+    wellPanel(
         conditionalPanel(
           condition = "input.avar_way == 'one'",
-          uiOutput("ui_avar_vars"),
           checkboxGroupInput(
             "avar_sum_check", label="Comparison of Means:", avar_sum_check,
             selected = state_group("avar_sum_check"), inline = TRUE
           )
+        ),
+        conditionalPanel(
+          condition = "input.avar_way == 'two'",
+          radioButtons("avar_model",label=HTML("Model Type: <em> read below <em>"), choices = avar_model),
+          # em("Model I (Fixed Effects Model):"), p("Assumes all factors/treatments are treated as fixed. "), br(),
+          # em("Model II (Random Effects Model):"), p("Assumes all factors/treatments are treated as random (ie. Random Sampling). "), br(),
+          # em("Model I (Mixed Effects Model):"), p("Assumes some factors are treated as random and some fixed. "), br(),
+          checkboxGroupInput(
+            "avar_sum_check", label="Comparison of Means:", avar_sum_check,
+            selected = state_group("avar_sum_check"), inline = TRUE
+          ),
+          checkboxInput("avar_interaction", label="With Interaction", value=FALSE)
         )
     ),
     help_and_report(
@@ -82,7 +126,7 @@ output$avar <- renderUI({
 })
 
 .avar <- eventReactive(input$avar_run, {
-  req(input$avar_vars)
+  req(input$avar_response)
   withProgress(message = "Beep...beep...comparing means!", value = 1, {
     avari <- avar_inputs()
     avari$envir <- r_data
@@ -103,7 +147,7 @@ avar_report <- function() {
   }
   outputs <- c("summary")
   inp_out <- list("", "")
-  inp_out[[1]] <- clean_args(reg_inputs(), reg_args[-1])
+  inp_out[[1]] <- clean_args(avar_inputs(), avar_args[-1])
   figs <- FALSE
 
   update_report(

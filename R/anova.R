@@ -1,9 +1,14 @@
-#' One-Way Anova
+#' Analysis of Variance (ANOVA)
 #'
-#' @details One-Way Anova function ...
+#' @details Anova function ...
 #'
 #' @param dataset Dataset
-#' @param vars The treatments variables
+#' @param treat The treatment variables
+#' @param treats The treatment variables 2
+#' @param response The response variable
+#' @param way One Way or Two Way ANOVA
+#' @param model Type of ANOVA Model
+#' @param interaction With Interaction
 #' @param data_filter Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")
 #' @param envir Environment to extract data from
 #' @param sum_check Optional output. "tukey" to show the Tukey Multiple Pairwise Comparisons. "posthoc" to show simultaneous tests for General Linear Hypotheses.
@@ -17,31 +22,77 @@
 #' @import multcomp
 #'
 #' @export
-avar <- function(dataset, vars, sum_check="", data_filter="", envir=parent.frame()){
-  labels = "none"
-  df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-  dataset <- get_data(dataset, if (labels == "none") vars else c(labels, vars), filt = data_filter, envir = envir) %>%
-    as.data.frame() %>%
-    mutate_if(is.Date, as.numeric)
-  rm(envir)
-  anyCategorical <- sapply(dataset, function(x) is.numeric(x)) == FALSE
-  ## in case : is used
-  if (length(vars) < ncol(dataset)) vars <- colnames(dataset)
-  newdf<-tidyr::gather(dataset, columnNames, values)
-  newdf$columnNames<-as.factor(newdf$columnNames)
-  one_way_anova<-aov(values~columnNames,data=newdf)
-  tukey_ow_anova<-TukeyHSD(one_way_anova)
-  df_tot<-nrow(dataset)
-  if ("tukey" %in% sum_check) {
-    tukey_ow_anova<-TukeyHSD(one_way_anova)
-  } else {
-    tukey_ow_anova<-"To run multiple comparisons of means, click on 'Tukeys Confidence Intervals' for Tukey Procedure's Confidence Intervals."
+avar <- function(dataset, treat,response, treats="",way="one", model="one", interaction="FALSE", sum_check="", data_filter="", envir=parent.frame()){
+  ## Data Manipulation
+  ## One Way ANOVA
+  if(way=="one"){
+    # labels = "none"
+    # df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
+    # dataset <- get_data(dataset, if (labels == "none") vars else c(labels, vars), filt = data_filter, envir = envir) %>%
+    #   as.data.frame() %>%
+    #   mutate_if(is.Date, as.numeric)
+    # rm(envir)
+    # anyCategorical <- sapply(dataset, function(x) is.numeric(x)) == FALSE
+    # if (length(vars) < ncol(dataset)) vars <- colnames(dataset)
+    df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
+    newdf <- get_data(dataset, c(treat, response), filt = data_filter, envir = envir, na.rm = FALSE)
+    colnames(newdf)<-c("columnNames","values")
+    newdf$columnNames<-as.factor(newdf$columnNames)
+    one_way_anova<-aov(values~columnNames,data=newdf)
+    df_tot<-nrow(newdf)
+    if ("tukey" %in% sum_check) {
+      tukey_ow_anova<-TukeyHSD(one_way_anova)
+    } else {
+      tukey_ow_anova<-"To run multiple comparisons of means, click on 'Tukeys Confidence Intervals' for Tukey Procedure's Confidence Intervals."
+    }
+    if ("posthoc" %in% sum_check) {
+      glh_ow_anova<-summary(glht(one_way_anova,linfct=mcp(columnNames="Tukey")))
+    } else {
+      glh_ow_anova<-"To run multiple comparisons tests of means, click on 'Post-Hoc' for simultaneous tets of general linear hypothesis."
+    }
   }
-  if ("posthoc" %in% sum_check) {
-    glh_ow_anova<-summary(glht(one_way_anova,linfct=mcp(columnNames="Tukey")))
-  } else {
-    glh_ow_anova<-"To run multiple comparisons tests of means, click on 'Post-Hoc' for simultaneous tets of general linear hypothesis."
+  ## Two Way ANOVA
+  if (way=="two"){
+    if (model=="one"){
+      df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
+      newdf <- get_data(dataset, c(treat, treats,response), filt = data_filter, envir = envir, na.rm = FALSE)
+      colnames(newdf)<-c("Treatment_1","Treatment_2","Response")
+      newdf$Treatment_1<-as.factor(newdf$Treatment_1)
+      newdf$Treatment_2<-as.factor(newdf$Treatmemt_2)
+      if(interaction=="FALSE"){
+        two_way_anova<-aov(Response~Treatment_1+Treatment_2, data=newdf)
+        tukey_tw_anova<-TukeyHSD(two_way_anova)
+        df_tot<-nrow(newdf)
+        if ("tukey" %in% sum_check) {
+          tukey_tw_anova<-TukeyHSD(two_way_anova)
+        } else {
+          tukey_tw_anova<-"To run multiple comparisons of means, click on 'Tukeys Confidence Intervals' for Tukey Procedure's Confidence Intervals."
+        }
+        if ("posthoc" %in% sum_check) {
+          glh_tw_anova<-summary(glht(two_way_anova,linfct=mcp(columnNames="Tukey")))
+        } else {
+          glh_tw_anova<-"To run multiple comparisons tests of means, click on 'Post-Hoc' for simultaneous tets of general linear hypothesis."
+        }
+      }
+      if(interaction=="TRUE"){
+        two_way_anova<-aov(Response~Treatment_1*Treatment_2, data=newdf)
+        tukey_tw_anova<-TukeyHSD(two_way_anova)
+        df_tot<-nrow(newdf)
+        if ("tukey" %in% sum_check) {
+          tukey_tw_anova<-TukeyHSD(two_way_anova)
+        } else {
+          tukey_tw_anova<-"To run multiple comparisons of means, click on 'Tukeys Confidence Intervals' for Tukey Procedure's Confidence Intervals."
+        }
+        if ("posthoc" %in% sum_check) {
+          glh_tw_anova<-summary(glht(two_way_anova,linfct=mcp(columnNames="Tukey")))
+        } else {
+          glh_tw_anova<-"To run multiple comparisons tests of means, click on 'Post-Hoc' for simultaneous tets of general linear hypothesis."
+        }
+      }
+    }
+
   }
+
   as.list(environment()) %>% add_class(c("avar"))
 
 }
@@ -56,44 +107,67 @@ avar <- function(dataset, vars, sum_check="", data_filter="", envir=parent.frame
 #' @import dplyr
 #'
 #' @export
-summary.avar <- function(object,sum_check, ...){
+summary.avar <- function(object,...){
   if (is.character(object)) return(object)
-  cat("----------------------------------------------------\n")
-  cat("One-Way Analysis of Variance (ANOVA) \n")
-  cat("----------------------------------------------------\n\n")
-  cat("Model: I or II\n")
-  cat("Variables   :", paste0(object$vars, collapse = ", "), "\n")
-  cat("\n\n")
-  ow_sum <-summary(object$one_way_anova)
-  sstr<-ow_sum[[1]][1,2]
-  sse<-ow_sum[[1]][2,2]
-  mstr<-ow_sum[[1]][1,3]
-  mse<-ow_sum[[1]][2,3]
-  df_sstr<-ow_sum[[1]][1,1]
-  df_sse<-ow_sum[[1]][2,1]
-  ssto<-sstr+sse
-  na<-"-"
-  df_ssto<-object$df_tot
-  owa_tab <- data.frame(matrix(nrow = 3, ncol = 3), stringsAsFactors = FALSE)
-  colnames(owa_tab) <- c("SS", "df", "MS")
-  rownames(owa_tab) <- c("Between Treatments", "Within Treatments", "Total")
-  owa_tab$SS <- c(sstr, sse, ssto)
-  owa_tab$df <- c(df_sstr, df_sse, df_ssto)
-  owa_tab$MS <- c(mstr,mse,na)
-  cat("ANOVA Table \n")
-  format(owa_tab, scientific = FALSE) %>% print()
-  # sum_display<-object$summary_ow_anova
-  # sum_display %<>% print()
-  cat("\n\n")
-  cat("F-Test:\n")
-  owa_ftest<-ow_sum[[1]][1,4:5]
-  rownames(owa_ftest)<-c("")
-  owa_ftest %<>% print()
-  cat("\n\n")
-  tuk_display<-object$tukey_ow_anova
-  tuk_display %<>% print()
-  cat("\n")
-  glh_display<-object$glh_ow_anova
-  glh_display %<>% print()
-  cat("\n")
+  if (object$way=="one"){
+    cat("----------------------------------------------------\n")
+    cat("One-Way Analysis of Variance (ANOVA) \n")
+    cat("----------------------------------------------------\n\n")
+    cat("Model: I or II\n")
+    cat("Treatment   :", object$treat, "\n")
+    cat("Response   :", object$response, "\n")
+    cat("\n\n")
+    ow_sum <-summary(object$one_way_anova)
+    sstr<-ow_sum[[1]][1,2]
+    sse<-ow_sum[[1]][2,2]
+    mstr<-ow_sum[[1]][1,3]
+    mse<-ow_sum[[1]][2,3]
+    df_sstr<-ow_sum[[1]][1,1]
+    df_sse<-ow_sum[[1]][2,1]
+    ssto<-sstr+sse
+    na<-"-"
+    df_ssto<-object$df_tot
+    owa_tab <- data.frame(matrix(nrow = 3, ncol = 3), stringsAsFactors = FALSE)
+    colnames(owa_tab) <- c("SS", "df", "MS")
+    rownames(owa_tab) <- c("Between Treatments", "Within Treatments", "Total")
+    owa_tab$SS <- c(sstr, sse, ssto)
+    owa_tab$df <- c(df_sstr, df_sse, df_ssto)
+    owa_tab$MS <- c(mstr,mse,na)
+    cat("ANOVA Table \n")
+    format(owa_tab, scientific = FALSE) %>% print()
+    # sum_display<-object$summary_ow_anova
+    # sum_display %<>% print()
+    cat("\n\n")
+    cat("F-Test:\n")
+    owa_ftest<-ow_sum[[1]][1,4:5]
+    rownames(owa_ftest)<-c("")
+    owa_ftest %<>% print()
+    cat("\n\n")
+    tuk_display<-object$tukey_ow_anova
+    tuk_display %<>% print()
+    cat("\n")
+    glh_display<-object$glh_ow_anova
+    glh_display %<>% print()
+    cat("\n")
+  }
+  if (object$way=="two"){
+    cat("----------------------------------------------------\n")
+    cat("Two-Way Analysis of Variance (ANOVA) \n")
+    cat("----------------------------------------------------\n\n")
+    cat("Model:", object$model,"\n")
+    cat("Treatment   :", paste0(object$treat, collapse = ", "), "\n")
+    cat("Response   :", object$response, "\n")
+    cat("\n\n")
+    if (object$interaction=="FALSE"){
+      tw_sum <- summary(object$two_way_anova)
+      cat("ANOVA Table \n")
+      tw_sum_display<-tw_sum[[1]][1:3,1:3]
+      tw_sum_display %<>% print()
+    } else{
+      tw_sum <- summary(object$two_way_anova)
+      cat("ANOVA Table \n")
+      tw_sum_display<-tw_sum[[1]][1:4,1:3]
+      tw_sum_display %<>% print()
+    }
+  }
 }

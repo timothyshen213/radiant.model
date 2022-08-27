@@ -2,29 +2,50 @@
 % Please edit documentation in R/anova.R
 \name{avar}
 \alias{avar}
-\title{One-Way Anova}
+\title{Analysis of Variance (ANOVA)}
 \usage{
-avar(dataset, vars, sum_check = "", data_filter = "", envir = parent.frame())
+avar(
+  dataset,
+  treat,
+  response,
+  treats = "",
+  ways = "one",
+  model = "one",
+  interaction = "FALSE",
+  sum_check = "",
+  data_filter = "",
+  envir = parent.frame()
+)
 }
 \arguments{
 \item{dataset}{Dataset}
 
-\item{vars}{The treatments variables}
+\item{treat}{The treatment variables}
+
+\item{response}{The response variable}
+
+\item{treats}{The treatment variables 2}
+
+\item{model}{Type of ANOVA Model}
+
+\item{interaction}{With Interaction}
 
 \item{sum_check}{Optional output. "tukey" to show the Tukey Multiple Pairwise Comparisons. "posthoc" to show simultaneous tests for General Linear Hypotheses.}
 
 \item{data_filter}{Expression entered in, e.g., Data > View to filter the dataset in Radiant. The expression should be a string (e.g., "price > 10000")}
 
 \item{envir}{Environment to extract data from}
+
+\item{way}{One Way or Two Way ANOVA}
 }
 \value{
 A list of all variables used in the one-way anova function as an object of class avar
 }
 \description{
-One-Way Anova
+Analysis of Variance (ANOVA)
 }
 \details{
-One-Way Anova function ...
+Anova function ...
 }
 \seealso{
 \code{\link{summary.avar}} to summarize results

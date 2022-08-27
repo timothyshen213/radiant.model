@@ -4,7 +4,7 @@
 \alias{summary.avar}
 \title{Summary method for the avar function}
 \usage{
-\method{summary}{avar}(object, sum_check, ...)
+\method{summary}{avar}(object, ...)
 }
 \arguments{
 \item{object}{Return value from \code{\link{avar}}}

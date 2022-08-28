@@ -42,8 +42,8 @@ output$ui_avar_treatments <- renderUI({
   toSelect <- .get_class() %in% c("numeric", "integer", "date", "factor")
   vars <- vars[toSelect]
   pickerInput(
-    inputId="avar_treats",label="Treatment II:", choices=vars,
-    multiple=FALSE,options=pickerOptions(liveSearch=TRUE, maxOptions = 1, title="**ONLY FOR TWO WAY ANOVA MODEL**"))
+    inputId="avar_treattwo",label="Treatment II:", choices=vars,
+    multiple=FALSE,options=pickerOptions(liveSearch=TRUE, maxOptions = 1))
 })
 
 output$ui_avar_response <- renderUI({
@@ -55,6 +55,8 @@ output$ui_avar_response <- renderUI({
     multiple=FALSE)
 })
 
+output$ui_avar_m3 <- renderText({"<em> Treatment I is the fixed factor. Treatment II is the random factor"
+})
 
 ## add a spinning refresh icon if the tabel needs to be (re)calculated
 run_refresh(avar_args, "avar", init = "vars", label = "Run ANOVA", relabel = "Re-run ANOVA")
@@ -70,10 +72,14 @@ output$ui_avar <- renderUI({
         selectInput(
           "avar_way",
           label = HTML("Type of ANOVA:"), choices = avar_testtype,
-          selected = state_single("avar_way", avar_testtype, "two"), multiple = FALSE
+          selected = state_single("avar_way", avar_testtype, "one"), multiple = FALSE
         ),
-        uiOutput("ui_avar_treatment"),
-        uiOutput("ui_avar_treatments"),
+        uiOutput("ui_avar_treatment")),
+    wellPanel(
+        conditionalPanel(
+          condition = "input.avar_way == 'two'",
+          uiOutput("ui_avar_treatments")
+          ),
         uiOutput("ui_avar_response")),
     wellPanel(
         conditionalPanel(
@@ -85,17 +91,15 @@ output$ui_avar <- renderUI({
         ),
         conditionalPanel(
           condition = "input.avar_way == 'two'",
-          radioButtons("avar_model",label=HTML("Model Type: <em> read below <em>"), choices = avar_model),
-          # em("Model I (Fixed Effects Model):"), p("Assumes all factors/treatments are treated as fixed. "), br(),
-          # em("Model II (Random Effects Model):"), p("Assumes all factors/treatments are treated as random (ie. Random Sampling). "), br(),
-          # em("Model I (Mixed Effects Model):"), p("Assumes some factors are treated as random and some fixed. "), br(),
-          checkboxGroupInput(
-            "avar_sum_check", label="Comparison of Means:", avar_sum_check,
-            selected = state_group("avar_sum_check"), inline = TRUE
-          ),
-          checkboxInput("avar_interaction", label="With Interaction", value=FALSE)
+          radioButtons("avar_model",label=HTML("Model Type:"), choices = avar_model),
+          conditionalPanel(
+            condition = "input.avar_model == 'three'",
+            uiOutput("ui_avar_m3")),
+          conditionalPanel(
+            condition = "input.avar_model == 'one'",
+            checkboxInput("avar_interaction", label="With Interaction", value=TRUE)
         )
-    ),
+    )),
     help_and_report(
       modal_title = "Analysis of Variance (ANOVA)",
       fun_name = "avar",
@@ -113,7 +117,7 @@ output$avar <- renderUI({
 
   avar_output_panels <- tabPanel(
       "Summary",
-      # download_link("dl_km_means"), br(),
+      # download_link("dl_avar"), br(),
       verbatimTextOutput("summary_avar")
     )
 
@@ -136,7 +140,8 @@ output$avar <- renderUI({
 
 .summary_avar <- reactive({
   if (not_pressed(input$avar_run)) {
-    "** Select two or more treatments to run ANOVA. Note both treatments must have the same response variable. **"
+    "ANALYSIS OF VARIANCE (ANOVA) \n\nSelect 'One-Way' or 'Two-Way' ANOVA to begin.\nThe analysis requires the type of response variable to be numeric.\nNote: the treatment variables will be treated as factors. \nIf these variable types are not available please select another dataset.\n\n" %>%
+      suggest_data("diamonds")
   } else {
     summary(.avar())
   }

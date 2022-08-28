@@ -8,8 +8,8 @@ avar(
   dataset,
   treat,
   response,
-  treats = "",
-  ways = "one",
+  treattwo,
+  way = "one",
   model = "one",
   interaction = "FALSE",
   sum_check = "",
@@ -24,7 +24,7 @@ avar(
 
 \item{response}{The response variable}
 
-\item{treats}{The treatment variables 2}
+\item{way}{One Way or Two Way ANOVA}
 
 \item{model}{Type of ANOVA Model}
 
@@ -36,7 +36,7 @@ avar(
 
 \item{envir}{Environment to extract data from}
 
-\item{way}{One Way or Two Way ANOVA}
+\item{treats}{The treatment variables 2}
 }
 \value{
 A list of all variables used in the one-way anova function as an object of class avar

@@ -22,7 +22,7 @@
 #' @import multcomp
 #'
 #' @export
-avar <- function(dataset, treat,response, treats="",way="one", model="one", interaction="FALSE", sum_check="", data_filter="", envir=parent.frame()){
+avar <- function(dataset, treat,response, treattwo, way="one", model="one", interaction="FALSE", sum_check="", data_filter="", envir=parent.frame()){
   ## Data Manipulation
   ## One Way ANOVA
   if(way=="one"){
@@ -53,44 +53,79 @@ avar <- function(dataset, treat,response, treats="",way="one", model="one", inte
   }
   ## Two Way ANOVA
   if (way=="two"){
+    df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
+    newdf <- get_data(dataset, c(treat, treattwo, response), filt = data_filter, envir = envir, na.rm = FALSE)
+    colnames(newdf)<-c("Treatment_1","Treatment_2","Response")
+    newdf$Treatment_1<-as.factor(newdf$Treatment_1)
+    newdf$Treatment_2<-as.factor(newdf$Treatment_2)
     if (model=="one"){
-      df_name <- if (is_string(dataset)) dataset else deparse(substitute(dataset))
-      newdf <- get_data(dataset, c(treat, treats,response), filt = data_filter, envir = envir, na.rm = FALSE)
-      colnames(newdf)<-c("Treatment_1","Treatment_2","Response")
-      newdf$Treatment_1<-as.factor(newdf$Treatment_1)
-      newdf$Treatment_2<-as.factor(newdf$Treatmemt_2)
       if(interaction=="FALSE"){
         two_way_anova<-aov(Response~Treatment_1+Treatment_2, data=newdf)
-        tukey_tw_anova<-TukeyHSD(two_way_anova)
         df_tot<-nrow(newdf)
-        if ("tukey" %in% sum_check) {
-          tukey_tw_anova<-TukeyHSD(two_way_anova)
-        } else {
-          tukey_tw_anova<-"To run multiple comparisons of means, click on 'Tukeys Confidence Intervals' for Tukey Procedure's Confidence Intervals."
-        }
-        if ("posthoc" %in% sum_check) {
-          glh_tw_anova<-summary(glht(two_way_anova,linfct=mcp(columnNames="Tukey")))
-        } else {
-          glh_tw_anova<-"To run multiple comparisons tests of means, click on 'Post-Hoc' for simultaneous tets of general linear hypothesis."
-        }
       }
       if(interaction=="TRUE"){
         two_way_anova<-aov(Response~Treatment_1*Treatment_2, data=newdf)
-        tukey_tw_anova<-TukeyHSD(two_way_anova)
         df_tot<-nrow(newdf)
-        if ("tukey" %in% sum_check) {
-          tukey_tw_anova<-TukeyHSD(two_way_anova)
-        } else {
-          tukey_tw_anova<-"To run multiple comparisons of means, click on 'Tukeys Confidence Intervals' for Tukey Procedure's Confidence Intervals."
-        }
-        if ("posthoc" %in% sum_check) {
-          glh_tw_anova<-summary(glht(two_way_anova,linfct=mcp(columnNames="Tukey")))
-        } else {
-          glh_tw_anova<-"To run multiple comparisons tests of means, click on 'Post-Hoc' for simultaneous tets of general linear hypothesis."
-        }
+      }
+      m1sum<-summary(two_way_anova)
+      if (interaction=="FALSE"){
+        factorA<-(m1sum[[1]][1,3])/(m1sum[[1]][3,3])
+        factorB<-(m1sum[[1]][2,3])/(m1sum[[1]][3,3])
+        fApv<-1-pf(factorA,m1sum[[1]][1,1],m1sum[[1]][3,1])
+        fBpv<-1-pf(factorB,m1sum[[1]][2,1],m1sum[[1]][3,1])
+        if(fApv==0)
+          fApv <- "<2e-16"
+        if(fBpv==0)
+          fBpv <- "<2e-16"
+      } else{
+        factorA<-(m1sum[[1]][1,3])/(m1sum[[1]][4,3])
+        factorB<-(m1sum[[1]][2,3])/(m1sum[[1]][4,3])
+        factorAB<-(m1sum[[1]][3,3])/(m1sum[[1]][4,3])
+        fApv<-1-pf(factorA,m1sum[[1]][1,1],m1sum[[1]][3,1])
+        fBpv<-1-pf(factorB,m1sum[[1]][2,1],m1sum[[1]][3,1])
+        fABpv<-1-pf(factorAB,m1sum[[1]][3,1],m1sum[[1]][3,1])
+        if(fApv==0)
+          fApv <- "<2e-16"
+        if(fBpv==0)
+          fBpv <- "<2e-16"
+        if(fABpv==0)
+          fABpv <- "<2e-16"
       }
     }
-
+    if (model=="two"){
+      two_way_anova<-aov(Response~Treatment_1*Treatment_2, data=newdf)
+      df_tot<-nrow(newdf)
+      m1sum<-summary(two_way_anova)
+      factorA<-(m1sum[[1]][1,3])/(m1sum[[1]][3,3])
+      factorB<-(m1sum[[1]][2,3])/(m1sum[[1]][3,3])
+      factorAB<-(m1sum[[1]][3,3])/(m1sum[[1]][4,3])
+      fApv<-1-pf(factorA,m1sum[[1]][1,1],m1sum[[1]][3,1])
+      fBpv<-1-pf(factorB,m1sum[[1]][2,1],m1sum[[1]][3,1])
+      fABpv<-1-pf(factorAB,m1sum[[1]][3,1],m1sum[[1]][4,1])
+      if(fApv==0)
+        fApv <- "<2e-16"
+      if(fBpv==0)
+        fBpv <- "<2e-16"
+      if(fABpv==0)
+        fABpv <- "<2e-16"
+    }
+    if (model=="three"){
+      two_way_anova<-aov(Response~Treatment_1*Treatment_2, data=newdf)
+      df_tot<-nrow(newdf)
+      m1sum<-summary(two_way_anova)
+      factorA<-(m1sum[[1]][1,3])/(m1sum[[1]][3,3])
+      factorB<-(m1sum[[1]][2,3])/(m1sum[[1]][4,3])
+      factorAB<-(m1sum[[1]][3,3])/(m1sum[[1]][4,3])
+      fApv<-1-pf(factorA,m1sum[[1]][1,1],m1sum[[1]][3,1])
+      fBpv<-1-pf(factorB,m1sum[[1]][2,1],m1sum[[1]][4,1])
+      fABpv<-1-pf(factorAB,m1sum[[1]][3,1],m1sum[[1]][4,1])
+      if(fApv==0)
+        fApv <- "<2e-16"
+      if(fBpv==0)
+        fBpv <- "<2e-16"
+      if(fABpv==0)
+        fABpv <- "<2e-16"
+    }
   }
 
   as.list(environment()) %>% add_class(c("avar"))
@@ -155,19 +190,53 @@ summary.avar <- function(object,...){
     cat("Two-Way Analysis of Variance (ANOVA) \n")
     cat("----------------------------------------------------\n\n")
     cat("Model:", object$model,"\n")
-    cat("Treatment   :", paste0(object$treat, collapse = ", "), "\n")
+    if (object$model=="one"){
+      cat("Treatment I (fixed):", object$treat, "\n")
+      cat("Treatment II (fixed):", object$treattwo, "\n")
+    } else if (object$model=="two") {
+      cat("Treatment I (random):", object$treat, "\n")
+      cat("Treatment II (random):", object$treattwo, "\n")
+    } else {
+      cat("Treatment I (fixed):", object$treat, "\n")
+      cat("Treatment II (random):", object$treattwo, "\n")
+    }
     cat("Response   :", object$response, "\n")
     cat("\n\n")
-    if (object$interaction=="FALSE"){
-      tw_sum <- summary(object$two_way_anova)
-      cat("ANOVA Table \n")
-      tw_sum_display<-tw_sum[[1]][1:3,1:3]
-      tw_sum_display %<>% print()
+
+    if (object$model == "one"){
+      if (object$interaction=="FALSE"){
+        tw_sum <- summary(object$two_way_anova)
+        cat("ANOVA Table \n")
+        tw_sum_display<-tw_sum[[1]][1:3,1:3]
+        tw_sum_display %<>% print()
+      } else{
+        tw_sum <- summary(object$two_way_anova)
+        cat("ANOVA Table \n")
+        tw_sum_display<-tw_sum[[1]][1:4,1:3]
+        tw_sum_display %<>% print()
+      }
+      cat("\n\n")
+      tw_ftest <- data.frame(matrix(nrow = 2, ncol = 2), stringsAsFactors = FALSE)
+      colnames(tw_ftest) <- c("F-Value"="fvalue", "Pr(>F)"="pval")
+      rownames(tw_ftest) <- c("Treatment I", "Treatment II")
+      tw_ftest$fvalue<-c(object$factorA,object$factorB)
+      tw_ftest$pval<-c(object$fApv, object$fBpv)
+      cat("F Test: Testing the presence of effects of ... \n")
+      format(tw_ftest, scientific = FALSE) %>% print()
     } else{
       tw_sum <- summary(object$two_way_anova)
       cat("ANOVA Table \n")
       tw_sum_display<-tw_sum[[1]][1:4,1:3]
       tw_sum_display %<>% print()
+      tw_ftest <- data.frame(matrix(nrow = 3, ncol = 2), stringsAsFactors = FALSE)
+      colnames(tw_ftest) <- c("F-Value"="fvalue", "Pr(>F)"="pval")
+      rownames(tw_ftest) <- c("Treatment I", "Treatment II", "Interaction")
+      tw_ftest$fvalue<-c(object$factorA,object$factorB, object$factorAB)
+      tw_ftest$pval<-c(object$fApv, object$fBpv, object$fABpv)
+      cat("\n\n")
+      cat("F Test: Testing the presence of effects of ... \n")
+      format(tw_ftest, scientific = FALSE) %>% print()
+    }
     }
   }
-}
+

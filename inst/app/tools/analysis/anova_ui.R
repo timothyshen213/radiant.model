@@ -1,7 +1,7 @@
 ################################################################
 # ANOVA - UI
 ################################################################
-avar_sum_check <-c("Tukeys Confidence Intervals"="tukey", "Post-Hoc"="posthoc")
+avar_sum_check <-c("Tukeys Confidence Intervals"="tukey", "Post-Hoc"="posthoc", "Diagnostic" = "diag")
 avar_testtype<-c("One Way"="one", "Two Way" = "two")
 avar_model<-c("Model I" = "one","Model II" = "two", "Model III"="three")
 avar_args <- as.list(formals(avar))
@@ -58,9 +58,35 @@ output$ui_avar_response <- renderUI({
 output$ui_avar_m3 <- renderText({"<em> Treatment I is the fixed factor. Treatment II is the random factor"
 })
 
+avar_plot <- reactive({
+  plots <- input$avar_plots
+  req(plots)
+  ph <- plots %>%
+    {
+      if (length(.) == 1 && . == "dendro") 800 else 400
+    }
+  pw <- 650
+  list(plot_width = pw, plot_height = ph * length(plots))
+})
+
+avar_plot_width <- function() {
+  avar_plot() %>%
+    {
+      if (is.list(.)) .$plot_width else 650
+    }
+}
+
+avar_plot_height <- function() {
+  avar_plot() %>%
+    {
+      if (is.list(.)) .$plot_height else 400
+    }
+}
+
 ## add a spinning refresh icon if the tabel needs to be (re)calculated
 run_refresh(avar_args, "avar", init = "vars", label = "Run ANOVA", relabel = "Re-run ANOVA")
-
+output$plot_pca<-renderPlot({
+  .plot_pca()})
 output$ui_avar <- renderUI({
   req(input$dataset)
   tagList(
@@ -98,8 +124,17 @@ output$ui_avar <- renderUI({
           conditionalPanel(
             condition = "input.avar_model == 'one'",
             checkboxInput("avar_interaction", label="With Interaction", value=TRUE)
-        )
-    )),
+        )),
+        conditionalPanel(
+          condition = "input.avar_way == 'two'",
+          checkboxInput("avar_plots", label="Interaction Plot", value = FALSE)
+        ),
+        conditionalPanel(
+          condition = "input.avar_way == 'two'",
+          checkboxGroupInput(
+            "avar_sum_check", label="Comparison of Means:", avar_sum_check,
+            selected = state_group("avar_sum_check"), inline = TRUE
+          ))),
     help_and_report(
       modal_title = "Analysis of Variance (ANOVA)",
       fun_name = "avar",
@@ -111,15 +146,29 @@ output$ui_avar <- renderUI({
 # output$summary_avar <- renderPrint({
 #   .summary_avar()})
 
+output$plot_avar<-renderPlot({
+  .plot_avar()})
 
 output$avar <- renderUI({
   register_print_output("summary_avar", ".summary_avar")
+  register_plot_output(
+    "plot_avar", ".plot_avar",
+    width_fun = "avar_plot_width",
+    height_fun = "avar_plot_height"
+  )
 
-  avar_output_panels <- tabPanel(
+  avar_output_panels <- tagList(
+    tabPanel(
       "Summary",
       # download_link("dl_avar"), br(),
       verbatimTextOutput("summary_avar")
+    ),
+    tabPanel(
+      "Plot",
+      # download_link("dl_avar_plot"), br(),
+      plotOutput("plot_avar", width = "100%", height = "100%")
     )
+  )
 
   stat_tab_panel(
     menu = "Model > Estimate",
@@ -146,6 +195,18 @@ output$avar <- renderUI({
     summary(.avar())
   }
 })
+
+.plot_avar <- eventReactive(
+  {
+    c(input$avar_run, input$avar_plots)
+  },
+  {withProgress(
+    message = "Generating cluster plot", value = 1,
+    capture_plot(plot(.avar(), plots = input$avar_plots))
+  )
+  }
+)
+
 avar_report <- function() {
   if (radiant.data::is_empty(input$avar_vars)) {
     return(invisible())

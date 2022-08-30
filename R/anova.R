@@ -20,6 +20,7 @@
 #'
 #' @import dplyr
 #' @import multcomp
+#' @import lmtest
 #'
 #' @export
 avar <- function(dataset, treat,response, treattwo, way="one", model="one", interaction="FALSE", sum_check="", data_filter="", envir=parent.frame()){
@@ -50,6 +51,14 @@ avar <- function(dataset, treat,response, treattwo, way="one", model="one", inte
     } else {
       glh_ow_anova<-"To run multiple comparisons tests of means, click on 'Post-Hoc' for simultaneous tets of general linear hypothesis."
     }
+    # Shapiro-Wilk's Test (Test for Normality)
+    shap_wilks <-shapiro.test(one_way_anova$residuals)
+    # Breusch-Pagan Test (Test for Homosekdasticity)
+    bp<-lmtest::bptest(one_way_anova)
+    # Ljung–Box Test (Test for Independence)
+    lj_box<-Box.test(one_way_anova$residuals, type="Ljung")
+    # Outliers
+    rs<-rstandard(one_way_anova)[rstandard(one_way_anova) < -3 | rstandard(one_way_anova) > 3]
   }
   ## Two Way ANOVA
   if (way=="two"){
@@ -126,6 +135,28 @@ avar <- function(dataset, treat,response, treattwo, way="one", model="one", inte
       if(fABpv==0)
         fABpv <- "<2e-16"
     }
+    if ("tukey" %in% sum_check) {
+      tukey_twa1<-TukeyHSD(two_way_anova, which = "Treatment_1")
+      tukey_twa2<-TukeyHSD(two_way_anova, which = "Treatment_2")
+    } else {
+      tukey_twa1<-"To run multiple comparisons of means, click on 'Tukeys Confidence Intervals' for Tukey Procedure's Confidence Intervals."
+      tukey_twa2<-" "
+    }
+    if ("posthoc" %in% sum_check) {
+      glh_twa1<-summary(glht(two_way_anova,linfct=mcp(Treatment_1="Tukey")))
+      glh_twa2<-summary(glht(two_way_anova,linfct=mcp(Treatment_2="Tukey")))
+    } else {
+      glh_twa1<-"To run multiple comparisons tests of means, click on 'Post-Hoc' for simultaneous tets of general linear hypothesis."
+      glh_twa2<-" "
+    }
+    # Shapiro-Wilk's Test (Test for Normality)
+    shap_wilks <-shapiro.test(two_way_anova$residuals)
+    # Breusch-Pagan Test (Test for Homosekdasticity)
+    bp<-lmtest::bptest(two_way_anova)
+    # Ljung–Box Test (Test for Independence)
+    lj_box<-Box.test(two_way_anova$residuals, type="Ljung")
+    # Outliers
+    rs<-rstandard(two_way_anova)[rstandard(two_way_anova) < -3 | rstandard(two_way_anova) > 3]
   }
 
   as.list(environment()) %>% add_class(c("avar"))
@@ -237,6 +268,86 @@ summary.avar <- function(object,...){
       cat("F Test: Testing the presence of effects of ... \n")
       format(tw_ftest, scientific = FALSE) %>% print()
     }
+    cat("\n\n")
+    tuk_display1<-object$tukey_twa1
+    tuk_display2<-object$tukey_twa2
+    tuk_display1 %<>% print()
+    tuk_display2 %<>% print()
+    cat("\n")
+    glh_display1<-object$glh_twa1
+    glh_display2<-object$glh_twa2
+    glh_display1 %<>% print()
+    glh_display2 %<>% print()
+    cat("\n")
+  }
+  if ("diag" %in% object$sum_check) {
+    cat("----------------------------------------------------\n")
+    cat("Diagnostic Testing \n")
+    cat("----------------------------------------------------\n\n")
+    cat("TEST FOR NORMALITY: Shapiro-Wilks Test \n")
+    cat("Null hyp.: The dataset is normally distributed \n")
+    cat("Alt. hyp.: The dataset is not normally distributed \n")
+    sw_display<-object$shap_wilk
+    sw_display %<>% print()
+    cat("\n\n")
+    cat("TEST FOR HOMOSKEDASTICITY: Breusch-Pagan Test \n")
+    cat("Null hyp.: The residuals are homoscedastic\n")
+    cat("Alt. hyp.: The residuals are heteroscedastic\n")
+    bp_display <-object$bp
+    bp_display %<>% print()
+    cat("\n\n")
+    cat("TEST FOR INDEPENDENCE: Ljung–Box Test \n")
+    cat("Null hyp.: The errors are uncorrelated\n")
+    cat("Alt. hyp.: The errors are correlated\n")
+    lb_display<-object$lj_box
+    lb_display %<>% print()
+    cat("\n\n")
+    cat("POSSIBLE OUTLIERS: Studentized Residuals \n")
+    cat("Absolute value of internally studentized residuals larger than 3 printed below\n")
+    rs_display<-object$rs
+    rs_display %<>% print()
+    cat("\n\n")
+  }
+}
+
+#' Plot method for the ANOVA function
+#'
+#' @details Plotting interaction plot ...
+#'
+#' @param x Return value from \code{\link{pca}}
+#' @param plots Plot to return.
+#' @param shiny Did the function call originate inside a shiny app
+#' @param custom Logical (TRUE, FALSE) to indicate if ggplot object (or list of ggplot objects) should be returned. This option can be used to customize plots (e.g., add a title, change x and y labels, etc.). See examples and \url{https://ggplot2.tidyverse.org/} for options.
+#' @param ... further arguments passed to or from other methods
+#'
+#' @import ggplot2
+#' @remote vqv/ggbiplot
+#'
+#' @export
+plot.avar<-function(x, plots="TRUE", shiny = FALSE, custom = FALSE, ...){
+  if (radiant.data::is_empty(plots)) return(invisible())
+  if (is.character(x)) return(invisible())
+  plot_list = list()
+  plotdf <- x$newdf %>% group_by(Treatment_1, Treatment_2) %>% summarise(mean=mean(Response))
+  if (plots=="TRUE"){
+    interaction_plot <- plotdf %>%
+      ggplot(aes(Treatment_1,mean))+
+      geom_line(size=1.2, aes(group=Treatment_2, color = Treatment_2))+
+      geom_point(size=2.6, aes(col=Treatment_2), shape=15) +
+      labs(
+        title= "Interaction between Treatment 1 and Treatment 2",
+        x = "Treatment 1",
+        y= "Treatment 2"
+      )
+  }
+  plot_list[["interaction"]]<-interaction_plot
+  if (length(plot_list) > 0) {
+    if (custom) {
+      if (length(plot_list) == 1) plot_list[[1]] else plot_list
+    } else {
+      patchwork::wrap_plots(plot_list, ncol = min(length(plot_list), 2)) %>%
+        {if (shiny) . else print(.)}
     }
   }
+}
 

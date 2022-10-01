@@ -1,14 +1,20 @@
 # Radiant - Business analytics using R and Shiny
 
-<!-- [![Build Status](https://travis-ci.org/radiant-rstats/radiant.model.png?branch=master)](https://travis-ci.org/radiant-rstats/radiant.model) -->
+<!-- [![Build Status](https://travis-ci.org/radiant-rstats/radiant.data.png?branch=master)](https://travis-ci.org/radiant-rstats/radiant.data) -->
 <!-- [![Coverage Status](https://img.shields.io/coveralls/vnijs/radiant.svg)](https://coveralls.io/r/vnijs/radiant?branch=master) -->
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/radiant.model)](https://CRAN.R-project.org/package=radiant.model)
+[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/radiant.data)](https://CRAN.R-project.org/package=radiant.data)
 
+This is a **modified** version of Radiant, not to be shared to use. See "Added Features" for more information.
 
-Radiant is an open-source platform-independent browser-based interface for business analytics in [R](https://www.r-project.org/). The application is based on the [Shiny](https://shiny.rstudio.com/) package and can be run locally or on a server. Radiant was developed by <a href="https://rady.ucsd.edu/people/faculty/nijs/" target="\_blank">Vincent Nijs</a>. Please use the issue tracker on GitHub to suggest enhancements or report problems: https://github.com/radiant-rstats/radiant.model/issues. For other questions and comments please use radiant@rady.ucsd.edu.
+Radiant is an open-source platform-independent browser-based interface for business analytics in [R](https://www.r-project.org/). Radiant was developed by <a href="https://rady.ucsd.edu/faculty-research/faculty/vincent-nijs.html" target="\_blank">Vincent Nijs</a>. Please use the issue tracker on GitHub to suggest enhancements or report problems: https://github.com/radiant-rstats/radiant.data/issues. For other questions and comments please use radiant@rady.ucsd.edu.
 
+## Added Features:
+- **Save Function for CKAN**: Sends radiant state file to a targeted CKAN Server (igenomed.stanford.edu), allowing users to share their current progress and collaborate in Radiant. (https://github.com/timothyshen213/radiant.data)
+- **Diganostic Function for Linear Regression**: Linear regression now offers the ability to run diagnostics tests to verify the validity of the assumptions. (https://github.com/timothyshen213/radiant.model)
+- **Analysis of Variance (ANOVA) Feature**: Data can now be fitted to an ANOVA Model. Features offers the ability to customize between one-way and two-way models. (https://github.com/timothyshen213/radiant.model)
+- **Principal Component Analysis (PCA) Feature**: Numerical variables can now be ran through a PCA Analysis. Features also offers the ability to visualize the anlaysis through biplot and screeplot. (https://github.com/timothyshen213/radiant.multivariate)
 
-- *Additional Features added Outside of Radiant: Diagnostic Testing added to Linear Regression (OLS)*
+Added features by Timothy Shen (https://github.com/timothyshen213).
 
 ## Key features
 

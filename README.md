@@ -8,13 +8,11 @@ This is a **modified** version of Radiant, not to be shared to use. See "Added F
 
 Radiant is an open-source platform-independent browser-based interface for business analytics in [R](https://www.r-project.org/). Radiant was developed by <a href="https://rady.ucsd.edu/faculty-research/faculty/vincent-nijs.html" target="\_blank">Vincent Nijs</a>. Please use the issue tracker on GitHub to suggest enhancements or report problems: https://github.com/radiant-rstats/radiant.data/issues. For other questions and comments please use radiant@rady.ucsd.edu.
 
-## Added Features:
+## Added Features: 
 - **Save Function for CKAN**: Sends radiant state file to a targeted CKAN Server (igenomed.stanford.edu), allowing users to share their current progress and collaborate in Radiant. (https://github.com/timothyshen213/radiant.data)
 - **Diganostic Function for Linear Regression**: Linear regression now offers the ability to run diagnostics tests to verify the validity of the assumptions. (https://github.com/timothyshen213/radiant.model)
-- **Analysis of Variance (ANOVA) Feature**: Data can now be fitted to an ANOVA Model. Features offers the ability to customize between one-way and two-way models. (https://github.com/timothyshen213/radiant.model)
-- **Principal Component Analysis (PCA) Feature**: Numerical variables can now be ran through a PCA Analysis. Features also offers the ability to visualize the anlaysis through biplot and screeplot. (https://github.com/timothyshen213/radiant.multivariate)
-
-Added features by Timothy Shen (https://github.com/timothyshen213).
+- **Analysis of Variance (ANOVA) Feature**: Data can now be fitted to an ANOVA Model. Feature offers the ability to customize between one-way and two-way models. (https://github.com/timothyshen213/radiant.model)
+- **Principal Component Analysis (PCA) Feature**: Numerical variables can now be ran through a PCA Analysis. Features also offers the ability to visualize the analysis through biplot and screeplot. (https://github.com/timothyshen213/radiant.multivariate)
 
 ## Key features
 
